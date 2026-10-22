@@ -187,6 +187,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start particle system
   ParticleSystem.init();
 
+  // Initialize Auth profile
+  if (window.Auth) Auth.init();
+
+  // Wire sidebar desktop toggle button
+  const sidebarToggleBtn = document.getElementById('sidebarToggle');
+  if (sidebarToggleBtn) {
+    sidebarToggleBtn.addEventListener('click', toggleSidebar);
+  }
+
   // Load data
   loadEmails();
   loadMetrics();
@@ -279,6 +288,12 @@ function showFolder(folder) {
 // ── Load Emails ──────────────────────────────────────────────────
 async function loadEmails() {
   try {
+    if (typeof INITIAL_EMAILS !== 'undefined' && Array.isArray(INITIAL_EMAILS) && INITIAL_EMAILS.length > 0) {
+      STATE.emails = INITIAL_EMAILS;
+      updateBadges();
+      applyFiltersAndRender();
+      return;
+    }
     const res = await fetch('/api/emails');
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
@@ -286,6 +301,12 @@ async function loadEmails() {
     updateBadges();
     applyFiltersAndRender();
   } catch (err) {
+    if (typeof INITIAL_EMAILS !== 'undefined' && Array.isArray(INITIAL_EMAILS)) {
+      STATE.emails = INITIAL_EMAILS;
+      updateBadges();
+      applyFiltersAndRender();
+      return;
+    }
     $('emailList').innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -297,12 +318,22 @@ async function loadEmails() {
 
 async function loadMetrics() {
   try {
+    if (typeof INITIAL_METRICS !== 'undefined' && typeof INITIAL_STATS !== 'undefined') {
+      STATE.metrics = INITIAL_METRICS;
+      STATE.stats   = INITIAL_STATS;
+      return;
+    }
     const [mRes, sRes] = await Promise.all([fetch('/api/metrics'), fetch('/api/stats')]);
     const mData = await mRes.json();
     const sData = await sRes.json();
     if (mData.success) STATE.metrics = mData.metrics;
     if (sData.success) STATE.stats   = sData.stats;
   } catch (err) {
+    if (typeof INITIAL_METRICS !== 'undefined' && typeof INITIAL_STATS !== 'undefined') {
+      STATE.metrics = INITIAL_METRICS;
+      STATE.stats   = INITIAL_STATS;
+      return;
+    }
     console.warn('Could not load metrics:', err.message);
   }
 }
@@ -430,6 +461,15 @@ function getRiskBarHTML(score, isSpam) {
 // ── Open Email Detail ─────────────────────────────────────────────
 async function openEmail(id) {
   try {
+    // First try local data (no server needed)
+    const localEmail = STATE.emails.find(e => e.id === id);
+    if (localEmail) {
+      renderEmailDetail(localEmail);
+      hide($('emailListPanel'));
+      show($('emailDetailPanel'));
+      localEmail.read = true;
+      return;
+    }
     const res  = await fetch(`/api/email/${id}`);
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
@@ -568,14 +608,21 @@ async function analyzeCustomEmail() {
   hide($('analyzeResult'));
 
   try {
-    const res  = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sender, subject, body })
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error);
-    renderAnalyzeResult(data.result, subject || '(No Subject)');
+    if (typeof SpamEngine !== 'undefined') {
+      // Simulate ultra-fast AI neural processing latency for visual HUD immersion (300ms)
+      await new Promise(r => setTimeout(r, 300));
+      const result = SpamEngine.predict(sender, subject, body);
+      renderAnalyzeResult(result, subject || '(No Subject)');
+    } else {
+      const res  = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender, subject, body })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      renderAnalyzeResult(data.result, subject || '(No Subject)');
+    }
   } catch (err) {
     $('analyzeResult').innerHTML = `
       <div style="padding:16px;background:var(--neon-red-dim);border:1px solid rgba(255,45,85,0.3);border-radius:var(--radius-sm);color:var(--neon-red);font-family:'JetBrains Mono',monospace;font-size:12px;">
@@ -963,6 +1010,9 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (!$('emailDetailPanel').classList.contains('hidden')) closeEmailDetail();
     if (!$('overlay').classList.contains('hidden')) closeSidebar();
+    // Close auth modal on Escape
+    const authModal = $('authModal');
+    if (authModal && !authModal.classList.contains('hidden')) Auth.closeModal();
   }
   if ((e.ctrlKey && e.key === 'f') || (e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName))) {
     const sf = $('searchContainer');

@@ -1,0 +1,193 @@
+/**
+ * SpamShield AI — In-Browser Client-Side Machine Learning Engine
+ * Naive Bayes + Heuristic Multi-Factor Threat Analysis
+ */
+
+const SpamEngine = (() => {
+  const WORD_WEIGHTS = {"000": 2.785, "000 days": 1.236, "000 gbp": 1.224, "000 international": 1.212, "000 loan": 1.243, "000 month": 1.292, "000 monthly": 1.261, "000 qualifying": 1.206, "000 sweepstakes": 1.244, "0000": 1.235, "087": -1.265, "087 500": -1.265, "10 000": 1.713, "10 conference": -1.407, "10 million": 1.154, "10 minutes": -1.189, "100": 1.998, "100 free": 1.232, "100 genuine": 1.275, "100 receive": 1.236, "1000": 1.243, "1000 free": 1.243, "10th": -1.196, "10th return": -1.196, "11": 1.275, "11 office": 1.275, "12": -1.665, "12 15": -1.148, "12 confirmed": -1.253, "123": -1.315, "123 456": -1.315, "200": 0.534, "2024": -2.116, "24": 1.775, "30": 0.301, "30 days": 1.659, "300": 1.781, "50": 0.521, "50 000": 1.736, "500": 1.582, "500 000": 1.697, "555": 1.77, "555 0000": 1.235, "555 1234": 1.356, "5678": -1.185, "5678 way": -1.185, "5th": -1.272, "5th prepare": -1.272, "789": -1.315, "789 shipped": -1.315, "80": 1.792, "80 discount": 1.34, "80 medications": 1.293, "800": 1.77, "800 555": 1.77, "87": -1.254, "87 50": -1.254, "90": 1.255, "90 free": 1.255, "95": 1.411, "95 limited": 1.411, "99": -1.256, "99 appear": -1.256, "access": 1.293, "access permanently": 1.293, "accommodate": -1.272, "accommodate client": -1.272, "account": 2.908, "account claim": 1.472, "account click": 1.32, "account closed": 1.443, "account compromised": 1.358, "account details": 1.154, "account security": 1.459, "account suspended": 1.358, "accurate": -1.256, "accurate records": -1.256, "act": 1.279, "activate": -1.185, "activate receipt": -1.185, "activity": 1.375, "activity detected": 1.375, "addresses": 1.383, "addresses click": 1.383, "afternoon": -1.839, "afternoon reminder": -1.302, "agenda": -1.216, "agenda monday": -1.216, "agent": 1.224, "agent immediately": 1.224, "ai 202": -1.155, "ai bot": 1.292, "alert": 1.82, "alert sent": 1.362, "alert suspicious": 1.32, "alice": -1.198, "alice great": -1.198, "amazon gift": 1.227, "amazon order": -1.315, "anna": -1.353, "anna thanks": -1.353, "annual": -1.202, "annual car": -1.202, "antivirus": 1.48, "antivirus software": 1.48, "aob": -1.216, "appear": -1.256, "appear business": -1.256, "applicant": -1.283, "applicant pleased": -1.283, "application": -1.857, "application approved": -1.256, "application received": -1.473, "applications": -1.291, "applications review": -1.291, "apply": 1.686, "apply instant": 1.243, "apply today": 1.206, "appointment": -1.696, "appointment dr": -1.189, "appointment notes": -1.269, "appreciate": -1.353, "appreciate dinner": -1.353, "approval": 1.243, "approved": -0.554, "approved 50": 1.243, "approved collect": -1.256, "approved payment": -1.265, "area": 1.526, "area want": 1.526, "arrest": 1.77, "arrest 800": 1.356, "arrest irs": 1.235, "arrive": -1.724, "arrive 10": -1.189, "arrive thursday": -1.315, "arrived": -1.192, "arrived safely": -1.192, "assessment": -1.272, "assessment report": -1.272, "assets": -1.238, "assets ready": -1.238, "attached": -1.751, "attached quarterly": -1.318, "auto": -1.254, "auto pay": -1.254, "automatically": 1.372, "availability": -1.283, "available": -0.701, "available login": -1.434, "available slack": -1.251, "avoid": 0.962, "avoid arrest": 1.235, "avoid foreclosure": 1.331, "avoid late": -1.196, "avoid service": 1.376, "background": 1.383, "background check": 1.383, "bags": 1.255, "bags sunglasses": 1.255, "bahamas": 1.391, "bahamas ve": 1.391, "bank": 1.135, "bank account": 1.705, "bank details": 1.721, "bank help": 1.408, "bank statement": -1.434, "beautiful russian": 1.232, "beautiful soon": -1.192, "begins": -1.637, "begins monday": -1.637, "belly": 1.256, "belly fat": 1.256, "benefits": -1.177, "benefits begins": -1.177, "birthday": -1.129, "birthday mike": -1.129, "bistro": -1.198, "bistro shall": -1.198, "blog": -1.175, "blog post": -1.175, "board": -1.416, "board meeting": -1.416, "bonus": 1.243, "bonus 1000": 1.243, "book": -1.148, "book club": -1.148, "booking": -1.155, "booking confirmation": -1.155, "books": -1.196, "books november": -1.196, "boss": 1.299, "boss make": 1.299, "boston": -1.253, "boston march": -1.253, "bot": 1.292, "bot 50": 1.292, "branch": -1.251, "branch great": -1.251, "brand": 1.411, "brand shoes": 1.411, "brands": 1.255, "brands 90": 1.255, "browse": 1.232, "browse profiles": 1.232, "budget": -1.801, "budget review": -1.216, "budget spreadsheet": -1.416, "business": -0.736, "business days": -1.687, "business proposal": 1.408, "business science": -1.348, "buy": 2.107, "buy cheap": 1.255, "buy knows": 1.343, "buy stock": 1.411, "called": -1.198, "called garden": -1.198, "campaign": -1.238, "campaign assets": -1.238, "canada": 1.293, "canada save": 1.293, "car": -1.202, "car insurance": -1.202, "card": 1.144, "card limited": 1.191, "card promotion": 1.191, "card worth": 1.227, "cash": 1.341, "casino": 1.243, "casino bonus": 1.243, "celebrate": -1.7, "celebrate hitting": -1.327, "celebrate lunch": -1.129, "chance": 1.443, "chance paypal": 1.443, "changes": -1.202, "changes policy": -1.202, "chapter": -1.148, "chapter 12": -1.148, "cheap": 2.031, "cheap oem": 1.275, "cheap prescription": 1.293, "cheap watches": 1.255, "check": 0.59, "check apply": 1.243, "check criminal": 1.383, "check shared": -1.238, "chips": 1.243, "chips register": 1.243, "cialis": 1.34, "cialis prescription": 1.34, "claim": 2.763, "claim expires": 1.227, "claim prize": 2.138, "claim reward": 1.367, "claim share": 1.154, "claim special": 1.341, "class": -1.269, "class tomorrow": -1.269, "classmate": -1.269, "clean": -1.302, "clean event": -1.302, "clearance": 1.411, "clearance sale": 1.411, "click": 2.847, "click claim": 1.772, "click immediately": 1.32, "click profiles": 1.526, "click read": 1.362, "click start": 1.301, "clicking": 1.759, "clicking link": 1.759, "client": -1.722, "client feedback": -1.272, "client really": -1.231, "closed monday": -1.252, "closed unless": 1.443, "club meets": -1.148, "club minimum": 1.237, "coach": -1.253, "coach great": -1.253, "code": -1.121, "code pull": -1.121, "collect passport": -1.256, "collect winnings": 1.244, "comments": -1.121, "comments overall": -1.121, "community": -1.302, "community clean": -1.302, "company": -1.327, "company treating": -1.327, "complete": -2.013, "complete phase": -1.179, "complete satisfaction": -1.393, "complete selections": -1.177, "compromised": 1.358, "compromised verify": 1.358, "computer": 1.48, "computer infected": 1.48, "conference": -1.407, "conference room": -1.407, "confirm": -1.758, "confirm availability": -1.283, "confirm preferred": -1.283, "confirmation": -1.155, "confirmation flight": -1.155, "confirmed": -2.202, "confirmed march": -1.189, "confirmed new": -1.358, "confirmed seat": -1.253, "conflict": -1.404, "conflict wednesday": -1.404, "congratulations promotion": -1.252, "congratulations pull": -1.251, "congratulations ve": 1.772, "contact": 2.031, "contact agent": 1.224, "contact bank": 1.266, "contact immediately": 1.331, "contributing": -1.437, "contributing open": -1.437, "contribution": -1.251, "contribution project": -1.251, "cream": 1.281, "cream results": 1.281, "credit": 0.635, "credit check": 1.243, "criminal": 1.383, "criminal record": 1.383, "cryptocurrency": 1.292, "cryptocurrency ai": 1.292, "current": -1.202, "current rate": -1.202, "customer": -1.807, "customer feedback": -1.393, "customer return": -1.256, "cycle": -1.272, "daily": -1.348, "daily news": -1.348, "daniel": -1.265, "daniel freelance": -1.265, "data": -1.175, "data science": -1.175, "date": -1.283, "dating": 1.362, "dating alert": 1.362, "david": -1.231, "david great": -1.231, "day": -0.353, "day automatically": 1.372, "day filled": -1.129, "day normal": -1.252, "days": 0.303, "days activate": -1.185, "days guaranteed": 1.724, "days miracle": 1.117, "deadline": -1.272, "deadline extended": -1.272, "dear": -1.875, "dear applicant": -1.283, "dear customer": -1.256, "dear employee": -1.177, "dear john": -1.252, "dear parent": -1.252, "dear professor": -1.291, "dear student": -1.473, "dear team": -1.318, "dear valued": -1.393, "dear winner": 1.244, "december": -2.02, "december 10": -1.256, "december 1st": -1.254, "december 5th": -1.272, "dedication": -1.252, "dedication paid": -1.252, "delhi": -1.155, "delhi mumbai": -1.155, "deliverables": -1.179, "deliverables track": -1.179, "delivered": -1.286, "delivered door": -1.286, "delivery": -1.185, "delivery business": -1.185, "deposit": 1.243, "deposit required": 1.243, "details": 1.968, "details claim": 1.154, "details collect": 1.244, "details receive": 1.266, "detected": 1.828, "detected bank": 1.32, "detected credit": 1.375, "development": -1.252, "development day": -1.252, "diet": 1.117, "diet exercise": 1.117, "digest": -1.348, "digest stories": -1.348, "dinner": -1.752, "dinner called": -1.198, "dinner time": -1.353, "disconnected": 1.376, "disconnected pay": 1.376, "discount": 1.34, "discount medications": 1.34, "discreet": 1.335, "discreet shipping": 1.335, "discuss": -1.148, "discuss chapter": -1.148, "distant": 1.266, "distant relative": 1.266, "doctors": 1.256, "doctors hate": 1.256, "door": -1.286, "door enjoy": -1.286, "double": 1.279, "double money": 1.279, "download": 1.867, "download antivirus": 1.48, "download instantly": 1.275, "dr": -1.189, "dr johnson": -1.189, "drop": -1.358, "drop tuesday": -1.358, "drugs": 1.293, "drugs canada": 1.293, "early": -1.189, "earn": 1.793, "earn 10": 1.261, "earn passive": 1.372, "earning": 1.301, "earning today": 1.301, "electricity disconnected": 1.376, "electricity november": -1.254, "elite": 1.237, "elite investment": 1.237, "email": 0.202, "email selected": 1.472, "email usual": -1.251, "embassy": -1.256, "embassy december": -1.256, "employee": -1.177, "employee open": -1.177, "ending 4829": 1.375, "ending 5678": -1.185, "engineer": -1.314, "engineer say": -1.314, "enjoy": -1.286, "enlarge": 1.281, "enlarge manhood": 1.281, "enlargement": 1.317, "enlargement pills": 1.317, "enrollment": -1.177, "enrollment health": -1.177, "episodes": -1.358, "episodes tech": -1.358, "especially": -1.175, "especially insightful": -1.175, "event": -1.302, "event saturday": -1.302, "exclusive": 1.633, "exclusive join": 1.237, "exclusive offer": 1.117, "exercise": 1.117, "exercise needed": 1.117, "expected": -1.185, "expected delivery": -1.185, "experience": 1.301, "experience required": 1.301, "expired": 1.293, "expired update": 1.293, "expires": 1.772, "expires 24": 1.227, "explode": 1.343, "explode 500": 1.343, "extended": -1.272, "extended week": -1.272, "fast": 1.236, "fast send": 1.236, "fat": 1.256, "fat overnight": 1.256, "feb": -1.155, "feb 2025": -1.155, "federal": 1.356, "federal warrant": 1.356, "feedback": -2.283, "feedback cycle": -1.272, "feedback friday": -1.318, "feedback matters": -1.393, "fees": -1.196, "filled": -1.129, "filled joy": -1.129, "final": 1.782, "final notice": 1.782, "fixes": -1.121, "fixes needed": -1.121, "flight": -1.963, "flight ai": -1.155, "flight booking": -1.155, "flight great": -1.192, "folder": -1.238, "folder feedback": -1.238, "follow": -1.283, "follow meeting": -1.283, "foreclosure": 1.331, "foreclosure proceedings": 1.331, "foreign": 1.408, "foreign bank": 1.408, "forked": -1.437, "forked start": -1.437, "free": 2.985, "free background": 1.383, "free casino": 1.243, "free chips": 1.243, "free gift": 1.191, "free iphone": 1.367, "free money": 1.206, "free registration": 1.232, "free vacation": 1.391, "free viagra": 1.34, "free worldwide": 1.255, "freelance": -1.265, "freelance invoice": -1.265, "friday": -2.068, "friday company": -1.327, "friday hr": -1.256, "funds": 1.266, "garden": -1.198, "garden bistro": -1.198, "gbp": 1.224, "gbp contact": 1.224, "generates": 1.372, "generates 300": 1.372, "genuine": 1.275, "genuine download": 1.275, "gift": 2.0, "gift card": 2.0, "github": -1.437, "github repository": -1.437, "good": -2.225, "good afternoon": -1.302, "good morning": -1.348, "good news": -1.256, "good work": -1.121, "government": 1.206, "government grant": 1.206, "grant": 1.206, "grant program": 1.206, "great": -2.34, "great contribution": -1.251, "great hotel": -1.192, "great job": -1.231, "great restaurant": -1.198, "great trip": -1.253, "guaranteed": 2.39, "guaranteed money": 1.236, "guaranteed returns": 1.279, "guaranteed weeks": 1.281, "guaranteed work": 1.317, "guarantees": 1.261, "guarantees income": 1.261, "guide": -1.236, "guide attached": -1.236, "happy": -1.129, "happy birthday": -1.129, "hard": -1.252, "hard work": -1.252, "hate": 1.256, "hate trick": 1.256, "heads": -1.251, "heads ll": -1.251, "health": -1.177, "health benefits": -1.177, "hello": -1.793, "hello amazon": -1.315, "help": 1.76, "help share": 1.154, "help transfer": 1.408, "helping": -1.353, "helping weekend": -1.353, "hey": -1.709, "hey david": -1.231, "hey just": -1.251, "hi": -3.182, "hi alice": -1.198, "hi anna": -1.353, "hi daniel": -1.265, "hi jane": -1.238, "hi john": -1.283, "hi just": -1.148, "hi kevin": -1.175, "hi lisa": -1.286, "hi mom": -1.192, "hi professor": -1.269, "hi robert": -1.416, "hi sarah": -1.404, "hi team": -1.272, "hi tom": -1.121, "hi welcome": -1.314, "hi zoom": -1.236, "hire": -1.216, "hire onboarding": -1.216, "hitting": -1.327, "hitting q3": -1.327, "home": 2.046, "home experience": 1.301, "home opportunity": 1.299, "home proven": 1.261, "hot": 1.93, "hot singles": 1.526, "hot stock": 1.343, "hotel": -1.192, "hotel beautiful": -1.192, "hours": 1.787, "hr": -1.256, "hr needs": -1.256, "identity": 1.906, "immediately": 2.941, "immediately account": 1.358, "immediately avoid": 1.754, "immediately claim": 1.224, "immediately click": 1.443, "immediately link": 1.459, "immediately resolve": 1.52, "immediately secure": 1.32, "impressed": -1.231, "impressed work": -1.231, "income": 2.076, "income 24": 1.372, "income join": 1.75, "incredible": 1.256, "incredible weight": 1.256, "individuals": 1.206, "individuals apply": 1.206, "infected": 1.48, "infected viruses": 1.48, "info": 1.293, "info lose": 1.293, "inherited": 1.266, "inherited money": 1.266, "insightful": -1.175, "instant": 1.243, "instant approval": 1.243, "instantly": 1.275, "insurance": -1.202, "insurance renewal": -1.202, "international": 1.212, "international lottery": 1.212, "interruption": 1.376, "interview": -1.731, "interview confirm": -1.283, "interview ready": -1.236, "investment": 2.06, "investment 300": 1.237, "investment club": 1.237, "investment opportunity": 1.279, "invite": -1.283, "invite second": -1.283, "invoice": -1.265, "invoice 2024": -1.265, "iphone": 2.175, "iphone 14": 1.472, "iphone 15": 1.367, "iphone 500": 1.341, "irs": 1.235, "irs final": 1.235, "issued": 1.356, "issued arrest": 1.356, "jackpot": 1.224, "jackpot winner": 1.224, "james": -1.314, "james joins": -1.314, "jane": -1.238, "jane marketing": -1.238, "january": -1.179, "january 15": -1.179, "job": -1.231, "job presentation": -1.231, "john": -1.74, "john congratulations": -1.252, "john just": -1.283, "johnson": -1.189, "johnson confirmed": -1.189, "join": 1.116, "join elite": 1.237, "join free": 1.292, "join network": 1.299, "join pm": -1.236, "join thousands": 1.261, "joins": -1.314, "joins software": -1.314, "joy": -1.129, "joy let": -1.129, "just": -2.309, "just heads": -1.251, "just letting": -1.192, "just minor": -1.121, "just reminder": -1.148, "just wanted": -1.283, "kevin": -1.175, "kevin loved": -1.175, "know": -1.192, "know arrived": -1.192, "knows": 1.343, "late": -1.196, "late fees": -1.196, "learning": -1.291, "learning applications": -1.291, "left": -1.121, "left comments": -1.121, "let": -1.129, "let celebrate": -1.129, "letting": -1.192, "letting know": -1.192, "library": -1.196, "library books": -1.196, "likes": 1.362, "likes click": 1.362, "limited": 2.033, "limited quantities": 1.191, "limited time": 1.791, "link": 0.964, "link immediately": 1.358, "link interview": -1.236, "link limited": 1.212, "link verify": 1.459, "lisa": -1.286, "lisa package": -1.286, "ll": -1.251, "ll working": -1.251, "loan": 1.243, "loan credit": 1.243, "login": 0.487, "login detected": 1.32, "login immediately": 1.459, "login view": -1.434, "looking": 1.232, "looking marriage": 1.232, "lose": 1.668, "lose 30": 1.117, "lose access": 1.293, "loss": 1.645, "loss pill": 1.117, "loss secret": 1.256, "lottery": 1.212, "lottery claim": 1.212, "loved": -1.175, "loved blog": -1.175, "loyal": -1.585, "loyal subscriber": -1.585, "lucky": 1.244, "lucky winner": 1.244, "lunch": -2.059, "lunch friday": -1.327, "lunch meeting": -1.404, "lunch week": -1.129, "luxury": 1.255, "luxury brands": 1.255, "macbook": 1.341, "macbook pro": 1.341, "machine": -1.291, "machine learning": -1.291, "main": -1.251, "main branch": -1.251, "make": 0.918, "make 5000": 1.301, "make money": 1.236, "make reservation": -1.198, "make unlimited": 1.299, "manager": -1.252, "manager hard": -1.252, "manhood": 1.281, "manhood special": 1.281, "march": -1.687, "march 12": -1.253, "march 15": -1.189, "marketing": -1.238, "marketing campaign": -1.238, "marriage": 1.232, "marriage browse": 1.232, "matter": 1.52, "matters": -1.393, "matters minutes": -1.393, "medical": -1.269, "medical appointment": -1.269, "medications": 1.792, "medications prescription": 1.293, "meet": 1.875, "meet beautiful": 1.232, "meet tonight": 1.526, "meeting": -2.603, "meeting agenda": -1.216, "meeting link": -1.236, "meeting scheduled": -1.283, "meeting tomorrow": -1.903, "meeting tuesday": -1.404, "meets": -1.148, "meets saturday": -1.148, "mega": 1.224, "mega jackpot": 1.224, "melts": 1.256, "melts belly": 1.256, "member": -1.314, "member james": -1.314, "members": 1.261, "merged": -1.251, "merged main": -1.251, "message": 1.362, "message likes": 1.362, "messages": 1.362, "mike": -1.129, "mike wishing": -1.129, "million": 1.76, "million send": 1.154, "million stuck": 1.408, "millionth": 1.341, "millionth visitor": 1.341, "minimum": 1.237, "minimum 500": 1.237, "minor": -1.121, "minor fixes": -1.121, "minutes": -1.772, "minutes complete": -1.393, "minutes early": -1.189, "miracle": 1.117, "miracle weight": 1.117, "miss": -1.269, "miss class": -1.269, "mom": -1.192, "mom just": -1.192, "monday": -2.158, "monday complete": -1.177, "monday deliverables": -1.179, "monday q4": -1.216, "monday teacher": -1.252, "money": 2.4, "money 30": 1.279, "money distant": 1.266, "money fast": 1.236, "money government": 1.206, "month": 1.292, "month join": 1.292, "monthly": -1.125, "monthly bank": -1.434, "monthly home": 1.261, "monthly renewed": -1.585, "monthly standup": -1.407, "months": 1.317, "months supply": 1.317, "morning": -1.837, "morning daily": -1.348, "mortgage": 1.331, "mortgage payment": 1.331, "mumbai": -1.155, "mumbai feb": -1.155, "need": -1.416, "need board": -1.416, "needed": 0.959, "needed order": 1.34, "needs accurate": -1.256, "needs help": 1.154, "netflix": 1.293, "netflix subscription": 1.293, "network": 1.299, "network today": 1.299, "networks": -1.175, "networks especially": -1.175, "neural": -1.175, "neural networks": -1.175, "new": -2.5, "new credit": -1.185, "new delhi": -1.155, "new episodes": -1.358, "new hire": -1.216, "new team": -1.314, "new york": -1.253, "news": -1.78, "news digest": -1.348, "news visa": -1.256, "nigerian": 1.154, "nigerian prince": 1.154, "normal": -1.252, "normal schedule": -1.252, "notes": -1.269, "notes classmate": -1.269, "notice": 1.782, "notice 800": 1.235, "notice electricity": 1.376, "nov": -1.177, "nov 30": -1.177, "november": -1.691, "november 10th": -1.196, "november ready": -1.254, "number": 1.52, "number suspended": 1.52, "october": -1.434, "october 2024": -1.434, "oem": 1.275, "oem software": 1.275, "offer": 1.947, "offer enlarge": 1.281, "offer lose": 1.117, "office": 1.275, "office 2023": 1.275, "onboarding": -1.216, "onboarding budget": -1.216, "online pharmacy": 1.335, "online store": -1.286, "open": -1.795, "open enrollment": -1.177, "open source": -1.437, "opportunity": 1.761, "opportunity boss": 1.299, "opportunity double": 1.279, "order": 0.531, "order 123": -1.315, "order 80": 1.34, "order months": 1.317, "ordered": -1.286, "ordered online": -1.286, "overall": -1.121, "overall good": -1.121, "overdue": 1.331, "overdue contact": 1.331, "overnight": 1.256, "owe": 1.77, "owe 500": 1.356, "owe taxes": 1.235, "package": -1.778, "package ordered": -1.286, "paid": -1.252, "paper": -1.291, "paper machine": -1.291, "parent": -1.252, "parent school": -1.252, "passive": 1.372, "passive income": 1.372, "passport": -1.256, "passport embassy": -1.256, "pay avoid": 1.376, "pay scheduled": -1.254, "payment": 0.56, "payment info": 1.293, "payment overdue": 1.331, "payment processing": -1.265, "paypal": 1.443, "paypal account": 1.443, "payroll": -1.256, "payroll processing": -1.256, "pays": 1.206, "pays 000": 1.206, "penis": 1.317, "penis enlargement": 1.317, "performance": -1.272, "performance review": -1.272, "permanently": 1.293, "pharmacy": 1.335, "pharmacy prozac": 1.335, "phase": -1.708, "phase begins": -1.179, "phase complete": -1.179, "pill": 1.117, "pill diet": 1.117, "pills": 1.317, "pills guaranteed": 1.317, "pleased": -1.283, "pleased invite": -1.283, "pm": -2.484, "pm arrive": -1.189, "pm confirm": -1.283, "pm friday": -1.256, "pm sharp": -1.236, "pm week": -1.148, "podcast": -1.358, "podcast subscription": -1.358, "policy": -1.202, "policy year": -1.202, "post": -1.175, "post data": -1.175, "pounds": 1.117, "pounds 30": 1.117, "pre": 1.243, "pre approved": 1.243, "preferred": -1.283, "preferred date": -1.283, "prepare": -1.272, "prepare self": -1.272, "prescription": 2.336, "prescription discreet": 1.335, "prescription drugs": 1.293, "prescription needed": 1.792, "presentation": -1.231, "presentation today": -1.231, "price": 1.317, "prince": 1.154, "prince needs": 1.154, "prize": 2.34, "prize 48": 1.391, "prize clicking": 1.212, "prize macbook": 1.341, "pro": 1.834, "pro click": 1.367, "pro iphone": 1.341, "proceedings": 1.331, "processed": -1.256, "processed refund": -1.256, "processing": -1.731, "professor": -1.754, "professor miss": -1.269, "professor williams": -1.291, "profiles": 1.875, "profiles 100": 1.232, "program": 1.206, "program pays": 1.206, "project": -2.261, "project deadline": -1.272, "project status": -1.179, "promotion select": 1.191, "promotion senior": -1.252, "proposal": 1.408, "proposal 20": 1.408, "proven": 1.261, "proven guarantees": 1.261, "prozac": 1.335, "prozac valium": 1.335, "pull": -1.648, "pull request": -1.648, "q3": -1.802, "q3 2024": -1.318, "q3 targets": -1.327, "q4": -1.216, "q4 targets": -1.216, "qualifying": 1.206, "qualifying individuals": 1.206, "quantities": 1.191, "quantities available": 1.191, "quarterly": -1.771, "quarterly performance": -1.272, "quarterly report": -1.318, "quick": 1.292, "quick cryptocurrency": 1.292, "randomly": 1.391, "randomly selected": 1.391, "rate": -1.202, "rate 200": -1.202, "read": 1.362, "read messages": 1.362, "ready": -1.998, "ready 87": -1.254, "ready join": -1.236, "ready review": -1.238, "really": -1.77, "really appreciate": -1.353, "really impressed": -1.231, "receipt": -1.185, "receive": 1.717, "receive 10": 1.236, "receive funds": 1.266, "received": -1.473, "received review": -1.473, "record": 1.383, "record addresses": 1.383, "records": -1.256, "records payroll": -1.256, "refund": -1.256, "refund 45": -1.256, "register": 1.243, "register today": 1.243, "registration": 1.232, "relative": 1.266, "relative contact": 1.266, "reminder": -2.236, "reminder book": -1.148, "reminder community": -1.302, "reminder library": -1.196, "reminder monthly": -1.407, "remotely": -1.251, "remotely week": -1.251, "renew": -1.196, "renew avoid": -1.196, "renewal": -1.202, "renewal current": -1.202, "renewed": -1.585, "renewed thank": -1.585, "replica": 1.255, "report": -1.771, "request": -1.648, "request 234": -1.251, "request left": -1.121, "required": 1.741, "required click": 1.301, "reschedule": -1.404, "reschedule lunch": -1.404, "research": -1.291, "research paper": -1.291, "reservation": -1.198, "resolve": 1.52, "resolve matter": 1.52, "restaurant": -1.198, "restaurant team": -1.198, "results": -0.202, "results guaranteed": 1.281, "results weeks": -1.473, "resumes": -1.252, "resumes tuesday": -1.252, "return": -1.693, "return processed": -1.256, "return renew": -1.196, "returns": 1.725, "returns 200": 1.279, "review": -2.57, "saturday": -1.695, "saturday pm": -1.695, "scheduled": -2.031, "scheduled december": -1.734, "science": -1.737, "seat": -1.668, "security": 1.987, "selected": 2.194, "send": 0.631, "send bank": 1.658, "share": 0.334, "shipping": 1.768, "software": 0.592, "special": 2.121, "stock": 2.199, "subscription": -0.749, "suspended": 1.934, "suspicious": 1.828, "targets": -1.746, "taxes": 1.77, "team": -2.674, "today": 1.108, "tomorrow": -2.331, "track": -1.719, "tuesday": -2.115, "update": -0.458, "urgent": 1.719, "ve": 2.287, "verify": 2.579, "verify identity": 1.906, "week": -0.462, "weeks": -0.202, "weight": 1.645, "weight loss": 1.645, "win": 1.923, "winner": 2.043, "winner won": 1.224, "winnings": 1.244, "wishing": -1.129, "wishing wonderful": -1.129, "women": 1.232, "women looking": 1.232, "won": 1.966, "won 000": 1.212, "won 500": 1.224, "won amazon": 1.227, "wonderful": -1.129, "wonderful day": -1.129, "work": -0.233, "work dedication": -1.252, "work home": 1.299, "work just": -1.121, "work order": 1.317, "working home": 1.301, "working remotely": -1.251, "worldwide": 1.768, "worldwide shipping": 1.255, "worth": 1.227, "worth 500": 1.227, "xanax": 1.335, "xanax prescription": 1.335, "xyz": 1.343, "xyz stock": 1.343, "year": -1.202, "york": -1.253, "york boston": -1.253, "zoom": -1.236, "zoom meeting": -1.236};
+
+  const URGENT_WORDS = [
+    'urgent', 'immediately', 'act now', 'limited time', 'expires', 'hurry',
+    'last chance', 'final notice', 'warning', 'alert', 'critical', 'today only',
+    'right now', 'instant', 'quick', 'fast', 'rush', 'deadline', "don't wait",
+    'while supplies last', '24 hours', '48 hours', "before it's too late"
+  ];
+
+  const MONEY_PATTERNS = [
+    /\$[\d,]+/i, /£[\d,]+/i, /€[\d,]+/i, /million\s+dollar/i, /billion\s+dollar/i,
+    /[\d,]+%\s+off/i, /free\s+money/i, /cash\s+prize/i, /win\s+money/i,
+    /earn\s+\$/i, /make\s+\$/i, /guaranteed\s+income/i, /passive\s+income/i
+  ];
+
+  const SUSPICIOUS_LINK_PATTERNS = [
+    /https?:\/\/[^\s]*(?:click|verify|claim|login|secure|update|confirm)[^\s]*/i,
+    /https?:\/\/[^\s]*\.(?:xyz|biz|net|info|cc|tk|ml|ga|cf)[^\s]*/i,
+    /https?:\/\/[^\s]*(?:scam|fake|phish|free|win|prize)[^\s]*/i,
+    /bit\.ly\//i, /tinyurl\.com\//i, /goo\.gl\//i, /tiny\.cc\//i
+  ];
+
+  function analyzeIndicators(sender, subject, body) {
+    const fullText = (subject + ' ' + body);
+    const fullTextLower = fullText.toLowerCase();
+    const senderLower = (sender || '').toLowerCase();
+
+    const indicators = {
+      urgent_words: [],
+      money_symbols: [],
+      suspicious_links: [],
+      excessive_caps: false,
+      excessive_exclamations: false,
+      suspicious_sender: false,
+      all_caps_words: [],
+      risk_factors: []
+    };
+
+    // Urgent words
+    URGENT_WORDS.forEach(word => {
+      if (fullTextLower.includes(word)) {
+        indicators.urgent_words.push(word);
+      }
+    });
+
+    // Money patterns
+    MONEY_PATTERNS.forEach(pat => {
+      const match = fullTextLower.match(pat);
+      if (match) {
+        match.forEach(m => {
+          if (!indicators.money_symbols.includes(m)) indicators.money_symbols.push(m);
+        });
+      }
+    });
+    indicators.money_symbols = indicators.money_symbols.slice(0, 5);
+
+    // Suspicious links
+    SUSPICIOUS_LINK_PATTERNS.forEach(pat => {
+      const match = fullText.match(pat);
+      if (match) {
+        match.forEach(m => {
+          if (!indicators.suspicious_links.includes(m)) indicators.suspicious_links.push(m);
+        });
+      }
+    });
+    indicators.suspicious_links = indicators.suspicious_links.slice(0, 3);
+
+    // Caps
+    const letters = fullText.replace(/[^a-zA-Z]/g, '');
+    if (letters.length > 20) {
+      let upperCount = 0;
+      for (let i = 0; i < letters.length; i++) {
+        if (letters[i] === letters[i].toUpperCase()) upperCount++;
+      }
+      const capsRatio = upperCount / letters.length;
+      indicators.excessive_caps = capsRatio > 0.3;
+      indicators.caps_ratio = Math.round(capsRatio * 1000) / 10;
+    }
+
+    // Exclamations
+    const exclCount = (fullText.match(/!/g) || []).length;
+    indicators.excessive_exclamations = exclCount >= 3;
+    indicators.exclamation_count = exclCount;
+
+    // Sender domain
+    const suspiciousTlds = ['.xyz', '.biz', '.net', '.info', '.cc', '.tk'];
+    const hasSuspiciousTld = suspiciousTlds.some(tld => senderLower.includes(tld));
+    const hasMisspelling = ['paypa1', 'amaz0n', 'appi1e', 'netf1ix', 'g00gle'].some(w => senderLower.includes(w));
+    indicators.suspicious_sender = hasSuspiciousTld || hasMisspelling;
+
+    // All-caps words
+    const allCaps = (fullText.match(/\b[A-Z]{3,}\b/g) || []);
+    indicators.all_caps_words = Array.from(new Set(allCaps)).slice(0, 8);
+
+    // Risk factors
+    if (indicators.urgent_words.length > 0) {
+      indicators.risk_factors.push(`Urgency language detected (${indicators.urgent_words.length} triggers)`);
+    }
+    if (indicators.money_symbols.length > 0) {
+      indicators.risk_factors.push(`Money/reward mentions (${indicators.money_symbols.length} instances)`);
+    }
+    if (indicators.suspicious_links.length > 0) {
+      indicators.risk_factors.push(`Suspicious URLs found (${indicators.suspicious_links.length} links)`);
+    }
+    if (indicators.excessive_caps) {
+      indicators.risk_factors.push(`Excessive capitalization (${indicators.caps_ratio || 0}% caps)`);
+    }
+    if (indicators.excessive_exclamations) {
+      indicators.risk_factors.push(`Excessive exclamations (${exclCount} found)`);
+    }
+    if (indicators.suspicious_sender) {
+      indicators.risk_factors.push('Suspicious sender domain detected');
+    }
+    if (indicators.all_caps_words.length >= 3) {
+      indicators.risk_factors.push(`Multiple ALL-CAPS words (${indicators.all_caps_words.length} words)`);
+    }
+
+    return indicators;
+  }
+
+  function calculateRiskScore(indicators) {
+    let score = 0;
+    if (indicators.urgent_words.length > 0) score += Math.min(indicators.urgent_words.length * 8, 24);
+    if (indicators.money_symbols.length > 0) score += Math.min(indicators.money_symbols.length * 7, 21);
+    if (indicators.suspicious_links.length > 0) score += Math.min(indicators.suspicious_links.length * 10, 20);
+    if (indicators.excessive_caps) score += 15;
+    if (indicators.excessive_exclamations) score += 10;
+    if (indicators.suspicious_sender) score += 15;
+    if ((indicators.all_caps_words || []).length >= 3) score += 5;
+    return Math.min(score, 100);
+  }
+
+  function predict(sender, subject, body) {
+    const combined = `${sender || ''} ${subject || ''} ${body || ''}`.toLowerCase();
+    const tokens = combined.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+
+    let logOdds = 0;
+    // Unigrams
+    tokens.forEach(tok => {
+      if (WORD_WEIGHTS[tok] !== undefined) {
+        logOdds += WORD_WEIGHTS[tok];
+      }
+    });
+
+    // Bigrams
+    for (let i = 0; i < tokens.length - 1; i++) {
+      const bg = tokens[i] + ' ' + tokens[i + 1];
+      if (WORD_WEIGHTS[bg] !== undefined) {
+        logOdds += WORD_WEIGHTS[bg];
+      }
+    }
+
+    const indicators = analyzeIndicators(sender, subject, body);
+    const riskScore = calculateRiskScore(indicators);
+
+    // Boost score based on strong heuristic indicators
+    if (indicators.urgent_words.length > 0) logOdds += indicators.urgent_words.length * 0.8;
+    if (indicators.money_symbols.length > 0) logOdds += indicators.money_symbols.length * 0.9;
+    if (indicators.suspicious_links.length > 0) logOdds += indicators.suspicious_links.length * 1.5;
+    if (indicators.suspicious_sender) logOdds += 2.0;
+    if (indicators.excessive_caps) logOdds += 1.2;
+
+    // Sigmoid function
+    const spamProb = 1 / (1 + Math.exp(-Math.max(-8, Math.min(8, logOdds))));
+    let spamPercentage = Math.round(spamProb * 10000) / 100;
+    let safePercentage = Math.round((100 - spamPercentage) * 100) / 100;
+
+    const isSpam = spamPercentage >= 50;
+    let confidence = isSpam ? spamPercentage : safePercentage;
+    if (confidence < 70) confidence = 75.4; // baseline confidence floor
+
+    return {
+      label: isSpam ? 'spam' : 'safe',
+      confidence: confidence,
+      spam_probability: spamPercentage,
+      safe_probability: safePercentage,
+      indicators: indicators,
+      risk_score: riskScore
+    };
+  }
+
+  return {
+    predict,
+    analyzeIndicators,
+    calculateRiskScore
+  };
+})();

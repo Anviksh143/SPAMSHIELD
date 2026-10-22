@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpamShield AI — Intelligent Email Security Dashboard</title>
+  <meta name="description" content="AI-powered spam email filter using Machine Learning. Classify emails as spam or safe with confidence scores and suspicious indicator analysis." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/style.css" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* Inline critical: hide FOUC */
+    body { opacity: 0; transition: opacity 0.4s ease; }
+    body.loaded { opacity: 1; }
+  </style>
+</head>
+<body>
+<!-- ── PARTICLE CANVAS ───────────────────────────── -->
+<canvas id="particleCanvas"></canvas>
+<!-- ── MATRIX RAIN ──────────────────────────────── -->
+<canvas id="matrixCanvas"></canvas>
+<!-- ── SCANLINES ─────────────────────────────────── -->
+<div class="scanlines"></div>
+<!-- ── TOP LOADER ─────────────────────────────────── -->
+<div class="top-loader" id="topLoader"></div>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name">SpamShield</span>
+        <span class="logo-sub">AI Security</span>
+      </div>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Sidebar Agent Profile Card -->
+  <div class="sidebar-agent-card" onclick="Auth.openModal()" title="Click to view Agent Profile / Switch">
+    <div class="agent-avatar" id="sidebarAvatar">A</div>
+    <div class="agent-info">
+      <div class="agent-name" id="sidebarUserName">Anviksh</div>
+      <div class="agent-role" id="sidebarUserRole">Cyber Security Analyst</div>
+    </div>
+    <span class="agent-status-badge">ONLINE</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <span class="nav-label">MAILBOX</span>
+      <button class="nav-item active" id="nav-inbox" data-tooltip="INBOX" onclick="showFolder('inbox')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3H10L8 12H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+        <span>Inbox</span>
+        <span class="badge badge-blue" id="badge-inbox">50</span>
+      </button>
+      <button class="nav-item" id="nav-spam" data-tooltip="SPAM" onclick="showFolder('spam')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        <span>Spam</span>
+        <span class="badge badge-red" id="badge-spam">0</span>
+      </button>
+      <button class="nav-item" id="nav-safe" data-tooltip="SAFE" onclick="showFolder('safe')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>Safe</span>
+        <span class="badge badge-green" id="badge-safe">0</span>
+      </button>
+    </div>
+
+    <div class="nav-section">
+      <span class="nav-label">TOOLS</span>
+      <button class="nav-item" id="nav-analyze" data-tooltip="SCANNER" onclick="showFolder('analyze')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Analyze Email</span>
+      </button>
+      <button class="nav-item" id="nav-dashboard" data-tooltip="DASHBOARD" onclick="showFolder('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Status bar -->
+  <div class="sidebar-status">
+    <div class="status-row">
+      <span class="status-dot"></span>
+      <span class="status-label">MODEL ONLINE</span>
+    </div>
+    <div class="status-row">
+      <span class="status-label" style="color:var(--text-muted);font-size:9px;">TF-IDF + NAIVE BAYES</span>
+    </div>
+    <div class="status-accuracy" id="sidebarAccuracy">ACC: —</div>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-icon" id="themeIcon">🌙</span>
+      <span id="themeLabel">Dark Mode</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ── MAIN CONTENT ────────────────────────────────────── -->
+<main class="main" id="mainContent">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <h1 class="page-title" id="pageTitle">INBOX</h1>
+    </div>
+    <div class="topbar-right">
+      <div class="hud-clock" id="hudClock">██:██:██</div>
+      <div class="search-box" id="searchContainer">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search emails..." autocomplete="off" />
+        <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Clear search">✕</button>
+      </div>
+      <div class="filter-group" id="filterGroup">
+        <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+        <button class="filter-btn" onclick="setFilter('spam', this)">Spam</button>
+        <button class="filter-btn" onclick="setFilter('safe', this)">Safe</button>
+        <button class="filter-btn" onclick="setFilter('unread', this)">Unread</button>
+      </div>
+
+      <!-- User Profile Badge -->
+      <div class="user-badge" id="userBadge" onclick="Auth.openModal()" title="Agent Profile & Access Clearance">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-meta">
+          <span class="user-rank">AGENT ONLINE</span>
+          <span class="user-name" id="topbarUserName">Agent Anviksh</span>
+        </div>
+        <svg class="user-chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── EMAIL LIST PANEL ── -->
+  <div class="content-area" id="emailListPanel">
+    <div class="email-list-container">
+      <div class="list-header">
+        <span id="listCount" class="list-count">Loading...</span>
+        <div class="sort-controls">
+          <select id="sortSelect" onchange="sortEmails()" class="sort-select">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="confidence-desc">High Confidence</option>
+            <option value="risk-desc">High Risk</option>
+          </select>
+        </div>
+      </div>
+      <div id="emailList" class="email-list">
+        <!-- Loading State -->
+        <div class="loading-container" id="loadingState">
+          <div class="spinner"></div>
+          <p class="loading-text">Loading emails & running AI analysis...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EMAIL DETAIL PANEL ── -->
+  <div class="content-area hidden" id="emailDetailPanel">
+    <div class="email-detail-container">
+      <button class="back-btn" onclick="closeEmailDetail()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back to list
+      </button>
+      <div id="emailDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- ── ANALYZE PANEL ── -->
+  <div class="content-area hidden" id="analyzePanel">
+    <div class="analyze-container">
+      <div class="analyze-header">
+        <h2>Manual Email Analyzer</h2>
+        <p>Enter email details below to analyze with our in-browser AI spam detection model</p>
+      </div>
+      <div class="analyze-form-card">
+        <div class="form-group">
+          <label for="analyzeSender">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Sender Email Address
+          </label>
+          <input type="text" id="analyzeSender" placeholder="e.g., noreply@suspicious-domain.xyz" autocomplete="off"/>
+          <span class="field-error" id="senderError"></span>
+        </div>
+        <div class="form-group">
+          <label for="analyzeSubject">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+            Email Subject
+          </label>
+          <input type="text" id="analyzeSubject" placeholder="e.g., URGENT: You've Won $1,000,000!" autocomplete="off"/>
+          <span class="field-error" id="subjectError"></span>
+        </div>
+        <div class="form-group">
+          <label for="analyzeBody">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Email Body
+          </label>
+          <textarea id="analyzeBody" rows="8" placeholder="Paste the email body content here..."></textarea>
+          <span class="field-error" id="bodyError"></span>
+        </div>
+        <div class="analyze-actions">
+          <button class="btn-analyze" id="analyzeBtn" onclick="analyzeCustomEmail()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Analyze with AI
+          </button>
+          <button class="btn-clear-form" onclick="clearAnalyzeForm()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            Clear
+          </button>
+        </div>
+        <div id="analyzeLoading" class="analyze-loading hidden">
+          <div class="spinner-sm"></div>
+          <span>Running neural AI analysis...</span>
+        </div>
+        <div id="analyzeResult" class="analyze-result hidden"></div>
+      </div>
+
+      <!-- Quick Fill Buttons -->
+      <div class="quick-fill-section">
+        <h3>Quick Fill Examples</h3>
+        <div class="quick-fill-grid">
+          <button class="quick-btn quick-spam" onclick="quickFill('spam1')">
+            <span class="qb-label">SPAM</span>
+            <span class="qb-desc">Lottery Winner Scam</span>
+          </button>
+          <button class="quick-btn quick-spam" onclick="quickFill('spam2')">
+            <span class="qb-label">SPAM</span>
+            <span class="qb-desc">Nigerian Prince</span>
+          </button>
+          <button class="quick-btn quick-safe" onclick="quickFill('safe1')">
+            <span class="qb-label">SAFE</span>
+            <span class="qb-desc">Work Meeting</span>
+          </button>
+          <button class="quick-btn quick-safe" onclick="quickFill('safe2')">
+            <span class="qb-label">SAFE</span>
+            <span class="qb-desc">Order Confirmation</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD PANEL ── -->
+  <div class="content-area hidden" id="dashboardPanel">
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <h2>AI Performance Dashboard</h2>
+        <p>Real-time analytics and machine learning metrics</p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card stat-total">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3H10L8 12H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-total">—</span>
+            <span class="stat-label">Total Emails</span>
+          </div>
+        </div>
+        <div class="stat-card stat-spam">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-spam">—</span>
+            <span class="stat-label">Spam Detected</span>
+          </div>
+        </div>
+        <div class="stat-card stat-safe">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-safe">—</span>
+            <span class="stat-label">Safe Emails</span>
+          </div>
+        </div>
+        <div class="stat-card stat-percent">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-pct">—</span>
+            <span class="stat-label">Spam Rate</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ML Metrics Cards -->
+      <div class="metrics-section">
+        <h3 class="section-title">ML Model Performance (TF-IDF + Naive Bayes)</h3>
+        <div class="metrics-grid" id="metricsGrid">
+          <div class="metric-card">
+            <div class="metric-circle" id="circle-accuracy">
+              <svg viewBox="0 0 100 100" class="metric-ring">
+                <circle cx="50" cy="50" r="40" class="ring-bg"/>
+                <circle cx="50" cy="50" r="40" class="ring-fill ring-accuracy" id="ring-acc"/>
+              </svg>
+              <div class="metric-center">
+                <span class="metric-pct" id="m-accuracy">—</span>
+              </div>
+            </div>
+            <span class="metric-name">Accuracy</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-circle">
+              <svg viewBox="0 0 100 100" class="metric-ring">
+                <circle cx="50" cy="50" r="40" class="ring-bg"/>
+                <circle cx="50" cy="50" r="40" class="ring-fill ring-precision" id="ring-prec"/>
+              </svg>
+              <div class="metric-center">
+                <span class="metric-pct" id="m-precision">—</span>
+              </div>
+            </div>
+            <span class="metric-name">Precision</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-circle">
+              <svg viewBox="0 0 100 100" class="metric-ring">
+                <circle cx="50" cy="50" r="40" class="ring-bg"/>
+                <circle cx="50" cy="50" r="40" class="ring-fill ring-recall" id="ring-rec"/>
+              </svg>
+              <div class="metric-center">
+                <span class="metric-pct" id="m-recall">—</span>
+              </div>
+            </div>
+            <span class="metric-name">Recall</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-circle">
+              <svg viewBox="0 0 100 100" class="metric-ring">
+                <circle cx="50" cy="50" r="40" class="ring-bg"/>
+                <circle cx="50" cy="50" r="40" class="ring-fill ring-f1" id="ring-f1"/>
+              </svg>
+              <div class="metric-center">
+                <span class="metric-pct" id="m-f1">—</span>
+              </div>
+            </div>
+            <span class="metric-name">F1 Score</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Email Classification Distribution</h3>
+          <div class="chart-wrapper">
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>ML Performance Metrics Comparison</h3>
+          <div class="chart-wrapper">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confusion Matrix -->
+      <div class="confusion-card">
+        <h3>Confusion Matrix</h3>
+        <div class="confusion-grid" id="confusionMatrix">
+          <div class="cm-labels">
+            <div></div>
+            <div class="cm-header">Predicted Safe</div>
+            <div class="cm-header">Predicted Spam</div>
+          </div>
+          <div class="cm-row">
+            <div class="cm-row-label">Actual Safe</div>
+            <div class="cm-cell cm-tn" id="cm-tn"><span>—</span><small>True Negative</small></div>
+            <div class="cm-cell cm-fp" id="cm-fp"><span>—</span><small>False Positive</small></div>
+          </div>
+          <div class="cm-row">
+            <div class="cm-row-label">Actual Spam</div>
+            <div class="cm-cell cm-fn" id="cm-fn"><span>—</span><small>False Negative</small></div>
+            <div class="cm-cell cm-tp" id="cm-tp"><span>—</span><small>True Positive</small></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model Info -->
+      <div class="model-info-card">
+        <h3>Model Configuration</h3>
+        <div class="model-info-grid">
+          <div class="info-item"><span class="info-key">Algorithm</span><span class="info-val">Multinomial Naive Bayes</span></div>
+          <div class="info-item"><span class="info-key">Vectorizer</span><span class="info-val">TF-IDF (n-gram: 1–2)</span></div>
+          <div class="info-item"><span class="info-key">Max Features</span><span class="info-val">5,000</span></div>
+          <div class="info-item"><span class="info-key">Smoothing α</span><span class="info-val">0.1</span></div>
+          <div class="info-item"><span class="info-key">Train/Test Split</span><span class="info-val">80% / 20%</span></div>
+          <div class="info-item"><span class="info-key">Training Samples</span><span class="info-val" id="train-size">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── AUTH MODAL ────────────────────────────────────── -->
+<div class="auth-modal-backdrop hidden" id="authModal">
+  <div class="auth-modal-card">
+    <button class="auth-close-btn" onclick="Auth.closeModal()" title="Close">✕</button>
+    <div class="auth-modal-header">
+      <div class="auth-logo-badge">🛡️</div>
+      <h2 class="auth-title">SPAMSHIELD ACCESS GATEWAY</h2>
+      <p class="auth-sub">Identity Authentication & Security Clearance</p>
+    </div>
+    
+    <div class="auth-tabs">
+      <button class="auth-tab-btn active" id="tabBtnLogin" onclick="Auth.switchTab('login')">LOGIN</button>
+      <button class="auth-tab-btn" id="tabBtnRegister" onclick="Auth.switchTab('register')">SIGN UP</button>
+    </div>
+
+    <div class="auth-error-box hidden" id="authError"></div>
+
+    <!-- Login Form -->
+    <form class="auth-form" id="loginForm" onsubmit="return Auth.handleLogin(event)">
+      <div class="auth-field">
+        <label><span class="field-icon">👤</span> Email or Agent ID</label>
+        <input type="text" id="loginEmail" placeholder="e.g. anviksh@spamshield.ai" autocomplete="username" />
+      </div>
+      <div class="auth-field">
+        <label><span class="field-icon">🔒</span> Clearance Passcode</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <div class="auth-actions">
+        <button type="submit" class="auth-btn-primary">AUTHENTICATE ACCESS</button>
+        <button type="button" class="auth-btn-guest" onclick="Auth.quickGuestLogin('Anviksh')">⚡ QUICK DEMO ACCESS (ANVIKSH)</button>
+      </div>
+    </form>
+
+    <!-- Register Form -->
+    <form class="auth-form hidden" id="registerForm" onsubmit="return Auth.handleRegister(event)">
+      <div class="auth-field">
+        <label><span class="field-icon">👤</span> Agent Full Name (Shows on Top Bar)</label>
+        <input type="text" id="regName" placeholder="e.g. Anviksh Sharma" autocomplete="name" required />
+      </div>
+      <div class="auth-field">
+        <label><span class="field-icon">✉️</span> Official Security Email</label>
+        <input type="email" id="regEmail" placeholder="e.g. anviksh@security.io" autocomplete="email" required />
+      </div>
+      <div class="auth-field">
+        <label><span class="field-icon">🔒</span> Create Access Passcode</label>
+        <input type="password" id="regPassword" placeholder="••••••••" autocomplete="new-password" required />
+      </div>
+      <div class="auth-field">
+        <label><span class="field-icon">🎖️</span> Designation / Role</label>
+        <select id="regRole" class="auth-select">
+          <option value="Lead Security Analyst">Lead Security Analyst</option>
+          <option value="Cyber Threat Hunter">Cyber Threat Hunter</option>
+          <option value="AI Safety Researcher">AI Safety Researcher</option>
+          <option value="Incident Response Officer">Incident Response Officer</option>
+        </select>
+      </div>
+      <div class="auth-actions">
+        <button type="submit" class="auth-btn-primary">REGISTER NEW AGENT</button>
+      </div>
+    </form>
+
+    <div class="auth-footer-note">
+      🔒 256-Bit Encrypted Local Clearance System • Pure Client-Side Storage
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST NOTIFICATION ──────────────────────────────── -->
+<div id="toast" class="toast hidden">
+  <span id="toastMsg"></span>
+</div>
+
+<!-- ── OVERLAY (mobile sidebar) ───────────────────────── -->
+<div class="overlay hidden" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- Scripts -->
+<script src="static/js/emails-data.js"></script>
+<script src="static/js/spam-engine.js"></script>
+<script src="static/js/auth.js"></script>
+<script src="static/js/main.js"></script>
+</body>
+</html>

@@ -50,6 +50,16 @@
     </button>
   </div>
 
+  <!-- Sidebar Agent Profile Card -->
+  <div class="sidebar-agent-card" onclick="Auth.openModal()" title="Click to view Agent Profile / Switch">
+    <div class="agent-avatar" id="sidebarAvatar">A</div>
+    <div class="agent-info">
+      <div class="agent-name" id="sidebarUserName">Anviksh</div>
+      <div class="agent-role" id="sidebarUserRole">Cyber Security Analyst</div>
+    </div>
+    <span class="agent-status-badge">ONLINE</span>
+  </div>
+
   <nav class="sidebar-nav">
     <div class="nav-section">
       <span class="nav-label">MAILBOX</span>
@@ -133,6 +143,18 @@
         <button class="filter-btn" onclick="setFilter('safe', this)">Safe</button>
         <button class="filter-btn" onclick="setFilter('unread', this)">Unread</button>
       </div>
+
+      <!-- User Profile Badge -->
+      <div class="user-badge" id="userBadge" onclick="Auth.openModal()" title="Agent Profile & Access Clearance">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-meta">
+          <span class="user-rank">AGENT ONLINE</span>
+          <span class="user-name" id="topbarUserName">Agent Anviksh</span>
+        </div>
+        <svg class="user-chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
     </div>
   </header>
 
@@ -178,7 +200,7 @@
     <div class="analyze-container">
       <div class="analyze-header">
         <h2>Manual Email Analyzer</h2>
-        <p>Enter email details below to analyze with our AI spam detection model</p>
+        <p>Enter email details below to analyze with our in-browser AI spam detection model</p>
       </div>
       <div class="analyze-form-card">
         <div class="form-group">
@@ -217,7 +239,7 @@
         </div>
         <div id="analyzeLoading" class="analyze-loading hidden">
           <div class="spinner-sm"></div>
-          <span>Running AI analysis...</span>
+          <span>Running neural AI analysis...</span>
         </div>
         <div id="analyzeResult" class="analyze-result hidden"></div>
       </div>
@@ -405,6 +427,73 @@
 
 </main>
 
+<!-- ── AUTH MODAL ────────────────────────────────────── -->
+<div class="auth-modal-backdrop hidden" id="authModal">
+  <div class="auth-modal-card">
+    <button class="auth-close-btn" onclick="Auth.closeModal()" title="Close">✕</button>
+    <div class="auth-modal-header">
+      <div class="auth-logo-badge">🛡️</div>
+      <h2 class="auth-title">SPAMSHIELD ACCESS GATEWAY</h2>
+      <p class="auth-sub">Identity Authentication & Security Clearance</p>
+    </div>
+    
+    <div class="auth-tabs">
+      <button class="auth-tab-btn active" id="tabBtnLogin" onclick="Auth.switchTab('login')">LOGIN</button>
+      <button class="auth-tab-btn" id="tabBtnRegister" onclick="Auth.switchTab('register')">SIGN UP</button>
+    </div>
+
+    <div class="auth-error-box hidden" id="authError"></div>
+
+    <!-- Login Form -->
+    <form class="auth-form" id="loginForm" onsubmit="return Auth.handleLogin(event)">
+      <div class="auth-field">
+        <label><span class="field-icon">👤</span> Email or Agent ID</label>
+        <input type="text" id="loginEmail" placeholder="e.g. anviksh@spamshield.ai" autocomplete="username" />
+      </div>
+      <div class="auth-field">
+        <label><span class="field-icon">🔒</span> Clearance Passcode</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <div class="auth-actions">
+        <button type="submit" class="auth-btn-primary">AUTHENTICATE ACCESS</button>
+        <button type="button" class="auth-btn-guest" onclick="Auth.quickGuestLogin('Anviksh')">⚡ QUICK DEMO ACCESS (ANVIKSH)</button>
+      </div>
+    </form>
+
+    <!-- Register Form -->
+    <form class="auth-form hidden" id="registerForm" onsubmit="return Auth.handleRegister(event)">
+      <div class="auth-field">
+        <label><span class="field-icon">👤</span> Agent Full Name (Shows on Top Bar)</label>
+        <input type="text" id="regName" placeholder="e.g. Anviksh Sharma" autocomplete="name" required />
+      </div>
+      <div class="auth-field">
+        <label><span class="field-icon">✉️</span> Official Security Email</label>
+        <input type="email" id="regEmail" placeholder="e.g. anviksh@security.io" autocomplete="email" required />
+      </div>
+      <div class="auth-field">
+        <label><span class="field-icon">🔒</span> Create Access Passcode</label>
+        <input type="password" id="regPassword" placeholder="••••••••" autocomplete="new-password" required />
+      </div>
+      <div class="auth-field">
+        <label><span class="field-icon">🎖️</span> Designation / Role</label>
+        <select id="regRole" class="auth-select">
+          <option value="Lead Security Analyst">Lead Security Analyst</option>
+          <option value="Cyber Threat Hunter">Cyber Threat Hunter</option>
+          <option value="AI Safety Researcher">AI Safety Researcher</option>
+          <option value="Incident Response Officer">Incident Response Officer</option>
+        </select>
+      </div>
+      <div class="auth-actions">
+        <button type="submit" class="auth-btn-primary">REGISTER NEW AGENT</button>
+      </div>
+    </form>
+
+    <div class="auth-footer-note">
+      🔒 256-Bit Encrypted Local Clearance System • Pure Client-Side Storage
+    </div>
+  </div>
+</div>
+
 <!-- ── TOAST NOTIFICATION ──────────────────────────────── -->
 <div id="toast" class="toast hidden">
   <span id="toastMsg"></span>
@@ -413,6 +502,10 @@
 <!-- ── OVERLAY (mobile sidebar) ───────────────────────── -->
 <div class="overlay hidden" id="overlay" onclick="closeSidebar()"></div>
 
+<!-- Scripts -->
+<script src="/static/js/emails-data.js"></script>
+<script src="/static/js/spam-engine.js"></script>
+<script src="/static/js/auth.js"></script>
 <script src="/static/js/main.js"></script>
 </body>
 </html>
