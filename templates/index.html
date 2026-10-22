@@ -430,13 +430,13 @@
 <!-- ── AUTH MODAL ────────────────────────────────────── -->
 <div class="auth-modal-backdrop hidden" id="authModal">
   <div class="auth-modal-card">
-    <button class="auth-close-btn" onclick="Auth.closeModal()" title="Close">✕</button>
+    <button class="auth-close-btn" id="authCloseBtn" onclick="Auth.closeModal()" title="Close">✕</button>
     <div class="auth-modal-header">
       <div class="auth-logo-badge">🛡️</div>
       <h2 class="auth-title">SPAMSHIELD ACCESS GATEWAY</h2>
-      <p class="auth-sub">Identity Authentication & Security Clearance</p>
+      <p class="auth-sub">Register or Login to enter the Security Dashboard</p>
     </div>
-    
+
     <div class="auth-tabs">
       <button class="auth-tab-btn active" id="tabBtnLogin" onclick="Auth.switchTab('login')">LOGIN</button>
       <button class="auth-tab-btn" id="tabBtnRegister" onclick="Auth.switchTab('register')">SIGN UP</button>
@@ -447,49 +447,56 @@
     <!-- Login Form -->
     <form class="auth-form" id="loginForm" onsubmit="return Auth.handleLogin(event)">
       <div class="auth-field">
-        <label><span class="field-icon">👤</span> Email or Agent ID</label>
-        <input type="text" id="loginEmail" placeholder="e.g. anviksh@spamshield.ai" autocomplete="username" />
+        <label>📧 Registered Email</label>
+        <input type="email" id="loginEmail" placeholder="e.g. anviksh@gmail.com" autocomplete="username" />
       </div>
       <div class="auth-field">
-        <label><span class="field-icon">🔒</span> Clearance Passcode</label>
+        <label>🔒 Password</label>
         <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
       </div>
       <div class="auth-actions">
-        <button type="submit" class="auth-btn-primary">AUTHENTICATE ACCESS</button>
-        <button type="button" class="auth-btn-guest" onclick="Auth.quickGuestLogin('Anviksh')">⚡ QUICK DEMO ACCESS (ANVIKSH)</button>
+        <button type="submit" class="auth-btn-primary">🔓 LOGIN</button>
       </div>
+      <p style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted);">
+        New user? <span onclick="Auth.switchTab('register')" style="color:var(--neon-cyan);cursor:pointer;font-weight:600;">Create an account →</span>
+      </p>
     </form>
 
     <!-- Register Form -->
     <form class="auth-form hidden" id="registerForm" onsubmit="return Auth.handleRegister(event)">
       <div class="auth-field">
-        <label><span class="field-icon">👤</span> Agent Full Name (Shows on Top Bar)</label>
-        <input type="text" id="regName" placeholder="e.g. Anviksh Sharma" autocomplete="name" required />
+        <label>👤 Full Name <span style="color:var(--neon-cyan);font-size:10px;">(Shown on top bar)</span></label>
+        <input type="text" id="regName" placeholder="e.g. Anviksh Sharma" autocomplete="name" />
       </div>
       <div class="auth-field">
-        <label><span class="field-icon">✉️</span> Official Security Email</label>
-        <input type="email" id="regEmail" placeholder="e.g. anviksh@security.io" autocomplete="email" required />
+        <label>📧 Email Address</label>
+        <input type="email" id="regEmail" placeholder="e.g. anviksh@gmail.com" autocomplete="email" />
       </div>
       <div class="auth-field">
-        <label><span class="field-icon">🔒</span> Create Access Passcode</label>
-        <input type="password" id="regPassword" placeholder="••••••••" autocomplete="new-password" required />
+        <label>🔒 Create Password</label>
+        <input type="password" id="regPassword" placeholder="Minimum 4 characters" autocomplete="new-password" />
       </div>
       <div class="auth-field">
-        <label><span class="field-icon">🎖️</span> Designation / Role</label>
+        <label>🎖️ Your Role / Designation</label>
         <select id="regRole" class="auth-select">
+          <option value="Cyber Security Analyst">Cyber Security Analyst</option>
           <option value="Lead Security Analyst">Lead Security Analyst</option>
           <option value="Cyber Threat Hunter">Cyber Threat Hunter</option>
           <option value="AI Safety Researcher">AI Safety Researcher</option>
           <option value="Incident Response Officer">Incident Response Officer</option>
+          <option value="Student - CS Department">Student - CS Department</option>
         </select>
       </div>
       <div class="auth-actions">
-        <button type="submit" class="auth-btn-primary">REGISTER NEW AGENT</button>
+        <button type="submit" class="auth-btn-primary">⚡ CREATE ACCOUNT</button>
       </div>
+      <p style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted);">
+        Already have an account? <span onclick="Auth.switchTab('login')" style="color:var(--neon-cyan);cursor:pointer;font-weight:600;">Login →</span>
+      </p>
     </form>
 
     <div class="auth-footer-note">
-      🔒 256-Bit Encrypted Local Clearance System • Pure Client-Side Storage
+      🔒 Data stored locally in your browser only • No server required
     </div>
   </div>
 </div>
