@@ -2618,3 +2618,28 @@ body::after {
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
 }
+
+/* ── Logout Button ── */
+.logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 45, 85, 0.12);
+  border: 1px solid rgba(255, 45, 85, 0.35);
+  color: var(--neon-red);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  margin-left: 8px;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 45, 85, 0.28);
+  border-color: var(--neon-red);
+  box-shadow: 0 0 12px rgba(255, 45, 85, 0.5);
+  transform: translateY(-1px);
+}

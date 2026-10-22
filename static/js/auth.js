@@ -1,60 +1,134 @@
 /**
  * SpamShield AI — Authentication & Agent Profile System
- * Enforces proper Register → Login flow.
- * Data stored in localStorage (client-side only, no server needed).
+ * STRICT Security Clearance:
+ * 1. Default state is LOCKED.
+ * 2. If no account exists, user MUST SIGN UP with Name, Email & Password.
+ * 3. Registered user's Name is saved and shown in Top Bar and Sidebar.
+ * 4. Cannot bypass by clicking outside or pressing Escape.
  */
 
 const Auth = (() => {
-  const KEY_ACTIVE = 'spamshield_active_user';
-  const KEY_USERS  = 'spamshield_users_db';
+  const KEY_ACTIVE  = 'spamshield_active_user_v3';
+  const KEY_USERS   = 'spamshield_users_db_v3';
 
-  // ── Helpers ──────────────────────────────────────────────────────
+  // Wipe any legacy/guest data from older versions
+  try {
+    localStorage.removeItem('spamshield_active_user');
+    localStorage.removeItem('spamshield_active_user_v2');
+  } catch (e) {}
+
   function getUsers() {
-    try { return JSON.parse(localStorage.getItem(KEY_USERS) || '[]'); }
-    catch { return []; }
-  }
-
-  function saveUsers(users) {
-    localStorage.setItem(KEY_USERS, JSON.stringify(users));
-  }
-
-  function getActiveUser() {
-    try { return JSON.parse(localStorage.getItem(KEY_ACTIVE)); }
-    catch { return null; }
-  }
-
-  function setActiveUser(user) {
-    localStorage.setItem(KEY_ACTIVE, JSON.stringify(user));
-    updateUI(user);
-  }
-
-  function clearActiveUser() {
-    localStorage.removeItem(KEY_ACTIVE);
-  }
-
-  // ── Init ─────────────────────────────────────────────────────────
-  // Called on page load. If no active user → force login modal.
-  function init() {
-    const user = getActiveUser();
-    if (user) {
-      updateUI(user);
-    } else {
-      // No active session — force the modal open (can't close without logging in)
-      setTimeout(() => openModal('login', true), 600);
+    try {
+      const data = localStorage.getItem(KEY_USERS);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
     }
   }
 
-  // ── Update Top Bar & Sidebar UI ───────────────────────────────────
-  function updateUI(user) {
-    if (!user) return;
-    const displayName = user.name || 'Agent';
-    const initial     = displayName.charAt(0).toUpperCase();
+  function saveUsers(users) {
+    try {
+      localStorage.setItem(KEY_USERS, JSON.stringify(users));
+    } catch (e) {}
+  }
 
-    _set('topbarUserName',  displayName);
-    _set('sidebarUserName', displayName);
-    _set('userAvatar',      initial);
-    _set('sidebarAvatar',   initial);
-    _set('sidebarUserRole', user.role || 'Security Analyst');
+  function getActiveUser() {
+    try {
+      const data = localStorage.getItem(KEY_ACTIVE);
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function setActiveUser(user) {
+    try {
+      localStorage.setItem(KEY_ACTIVE, JSON.stringify(user));
+    } catch (e) {}
+    updateUI(user);
+  }
+
+  function clearActiveSession() {
+    try {
+      localStorage.removeItem(KEY_ACTIVE);
+    } catch (e) {}
+    resetUI();
+  }
+
+  let _forced = true;
+
+  function init() {
+    const active = getActiveUser();
+    const users = getUsers();
+
+    // Verify active user truly exists in registered database
+    const verified = active && active.email && users.some(u => u.email.toLowerCase() === active.email.toLowerCase());
+
+    if (verified) {
+      _forced = false;
+      updateUI(active);
+      const modal = document.getElementById('authModal');
+      if (modal) modal.classList.add('hidden');
+    } else {
+      clearActiveSession();
+      _forced = true;
+      // If no users registered yet, prompt SIGN UP directly!
+      const tab = users.length === 0 ? 'register' : 'login';
+      openModal(tab, true);
+    }
+  }
+
+  function updateUI(user) {
+    if (!user) {
+      resetUI();
+      return;
+    }
+
+    const name = user.name || 'Agent';
+    const role = user.role || 'Cyber Security Analyst';
+    const initial = name.charAt(0).toUpperCase();
+
+    _set('topbarUserName', name);
+    _set('sidebarUserName', name);
+    _set('userAvatar', initial);
+    _set('sidebarAvatar', initial);
+    _set('sidebarUserRole', role);
+
+    const rankEl = document.getElementById('userRank');
+    if (rankEl) rankEl.textContent = 'AGENT ONLINE';
+
+    const badge = document.getElementById('sidebarAgentBadge');
+    if (badge) {
+      badge.textContent = 'ONLINE';
+      badge.style.color = 'var(--neon-green)';
+      badge.style.borderColor = 'rgba(0, 255, 136, 0.4)';
+      badge.style.background = 'rgba(0, 255, 136, 0.1)';
+    }
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+  }
+
+  function resetUI() {
+    _set('topbarUserName', 'Login / Sign Up');
+    _set('sidebarUserName', 'Agent Locked');
+    _set('userAvatar', '🔒');
+    _set('sidebarAvatar', '🔒');
+    _set('sidebarUserRole', 'Access Required');
+
+    const rankEl = document.getElementById('userRank');
+    if (rankEl) rankEl.textContent = 'AUTH REQUIRED';
+
+    const badge = document.getElementById('sidebarAgentBadge');
+    if (badge) {
+      badge.textContent = 'LOCKED';
+      badge.style.color = 'var(--neon-red)';
+      badge.style.borderColor = 'rgba(255, 45, 85, 0.4)';
+      badge.style.background = 'rgba(255, 45, 85, 0.1)';
+    }
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.style.display = 'none';
   }
 
   function _set(id, text) {
@@ -62,27 +136,24 @@ const Auth = (() => {
     if (el) el.textContent = text;
   }
 
-  // ── Modal Control ─────────────────────────────────────────────────
-  // forcedOpen = true means user CANNOT close it without logging in
-  let _forced = false;
-
-  function openModal(defaultTab = 'login', forced = false) {
+  function openModal(tab = 'login', forced = false) {
     _forced = forced;
     const modal = document.getElementById('authModal');
+    const closeBtn = document.getElementById('authCloseBtn');
     if (!modal) return;
+
     modal.classList.remove('hidden');
-    switchTab(defaultTab);
+    switchTab(tab);
     clearError();
 
-    // Show or hide the close button based on forced mode
-    const closeBtn = document.getElementById('authCloseBtn');
-    if (closeBtn) closeBtn.style.display = forced ? 'none' : 'block';
+    if (closeBtn) {
+      closeBtn.style.display = forced ? 'none' : 'block';
+    }
   }
 
   function closeModal() {
     if (_forced) {
-      // Don't allow closing unless logged in
-      showError('Please login or sign up to access SpamShield.');
+      showError('Access denied: You must Sign Up or Login first!');
       return;
     }
     const modal = document.getElementById('authModal');
@@ -91,123 +162,126 @@ const Auth = (() => {
   }
 
   function switchTab(tab) {
-    const loginTab     = document.getElementById('tabBtnLogin');
-    const registerTab  = document.getElementById('tabBtnRegister');
-    const loginForm    = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
     clearError();
+    const isReg = tab === 'register';
+    const loginTab = document.getElementById('tabBtnLogin');
+    const registerTab = document.getElementById('tabBtnRegister');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
 
-    if (tab === 'register') {
-      loginTab?.classList.remove('active');
-      registerTab?.classList.add('active');
-      loginForm?.classList.add('hidden');
-      registerForm?.classList.remove('hidden');
-    } else {
-      registerTab?.classList.remove('active');
-      loginTab?.classList.add('active');
-      registerForm?.classList.add('hidden');
-      loginForm?.classList.remove('hidden');
-    }
+    loginTab?.classList.toggle('active', !isReg);
+    registerTab?.classList.toggle('active', isReg);
+    loginForm?.classList.toggle('hidden', isReg);
+    registerForm?.classList.toggle('hidden', !isReg);
   }
 
-  // ── Register ──────────────────────────────────────────────────────
   function handleRegister(e) {
     if (e) e.preventDefault();
     clearError();
 
-    const name  = document.getElementById('regName')?.value.trim();
-    const email = document.getElementById('regEmail')?.value.trim().toLowerCase();
-    const pass  = document.getElementById('regPassword')?.value;
-    const role  = document.getElementById('regRole')?.value || 'Security Analyst';
+    const name = (document.getElementById('regName')?.value || '').trim();
+    const email = (document.getElementById('regEmail')?.value || '').trim().toLowerCase();
+    const pass = document.getElementById('regPassword')?.value || '';
+    const role = document.getElementById('regRole')?.value || 'Cyber Security Analyst';
 
-    // Validation
-    if (!name)  return showError('Agent name is required.');
-    if (name.length < 2) return showError('Name must be at least 2 characters.');
-    if (!email) return showError('Email address is required.');
-    if (!isValidEmail(email)) return showError('Enter a valid email address.');
-    if (!pass)  return showError('Password is required.');
-    if (pass.length < 4) return showError('Password must be at least 4 characters.');
-
-    const users = getUsers();
-    if (users.find(u => u.email === email)) {
-      return showError('An account with this email already exists. Please login.');
+    if (!name || name.length < 2) {
+      return showError('Please enter your full name (minimum 2 characters).');
+    }
+    if (!email || !_validEmail(email)) {
+      return showError('Please enter a valid email address.');
+    }
+    if (!pass || pass.length < 4) {
+      return showError('Password must be at least 4 characters long.');
     }
 
-    // Save new user
-    const newUser = { name, email, password: pass, role, registeredAt: new Date().toISOString() };
+    const users = getUsers();
+    if (users.some(u => u.email.toLowerCase() === email)) {
+      return showError('An account with this email already exists! Please click LOGIN.');
+    }
+
+    const newUser = {
+      name,
+      email,
+      password: pass,
+      role,
+      createdAt: new Date().toISOString()
+    };
+
     users.push(newUser);
     saveUsers(users);
     setActiveUser(newUser);
 
     _forced = false;
-    document.getElementById('authModal')?.classList.add('hidden');
+    const modal = document.getElementById('authModal');
+    if (modal) modal.classList.add('hidden');
 
-    if (typeof showToast === 'function') {
-      showToast(`⚡ Welcome Agent ${name}! Account created.`);
-    }
-
-    // Clear form
-    ['regName','regEmail','regPassword'].forEach(id => {
+    ['regName', 'regEmail', 'regPassword'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
+
+    if (typeof showToast === 'function') {
+      showToast(`⚡ Identity Created! Welcome Agent ${name}`);
+    }
     return false;
   }
 
-  // ── Login ─────────────────────────────────────────────────────────
   function handleLogin(e) {
     if (e) e.preventDefault();
     clearError();
 
-    const email = document.getElementById('loginEmail')?.value.trim().toLowerCase();
-    const pass  = document.getElementById('loginPassword')?.value;
+    const email = (document.getElementById('loginEmail')?.value || '').trim().toLowerCase();
+    const pass = document.getElementById('loginPassword')?.value || '';
 
-    if (!email) return showError('Please enter your email address.');
-    if (!pass)  return showError('Please enter your password.');
+    if (!email) return showError('Please enter your registered email.');
+    if (!pass) return showError('Please enter your password.');
 
     const users = getUsers();
-    const user  = users.find(u => u.email === email);
+    if (users.length === 0) {
+      return showError('No accounts found on this system! Please click SIGN UP to create your account.');
+    }
 
+    const user = users.find(u => u.email.toLowerCase() === email);
     if (!user) {
-      return showError('No account found with this email. Please sign up first.');
+      return showError('Account not found! You must SIGN UP first before logging in.');
     }
 
     if (user.password !== pass) {
-      return showError('Incorrect password. Please try again.');
+      return showError('Incorrect password! Please check your credentials.');
     }
 
-    // Success
     setActiveUser(user);
     _forced = false;
-    document.getElementById('authModal')?.classList.add('hidden');
-    clearError();
+    const modal = document.getElementById('authModal');
+    if (modal) modal.classList.add('hidden');
 
-    if (typeof showToast === 'function') {
-      showToast(`⚡ Access Granted: Agent ${user.name}`);
-    }
-
-    // Clear fields
-    ['loginEmail','loginPassword'].forEach(id => {
+    ['loginEmail', 'loginPassword'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
+
+    if (typeof showToast === 'function') {
+      showToast(`⚡ Access Granted — Welcome Agent ${user.name}`);
+    }
     return false;
   }
 
-  // ── Logout ────────────────────────────────────────────────────────
   function logout() {
-    clearActiveUser();
+    clearActiveSession();
     _forced = true;
-    openModal('login', true);
+    const users = getUsers();
+    openModal(users.length === 0 ? 'register' : 'login', true);
     if (typeof showToast === 'function') {
-      showToast('Session ended. Please authenticate again.');
+      showToast('Session ended. Please login again.');
     }
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────
   function showError(msg) {
     const box = document.getElementById('authError');
-    if (box) { box.textContent = `⚠ ${msg}`; box.classList.remove('hidden'); }
+    if (box) {
+      box.textContent = `⚠ ${msg}`;
+      box.classList.remove('hidden');
+    }
   }
 
   function clearError() {
@@ -215,11 +289,10 @@ const Auth = (() => {
     if (box) box.classList.add('hidden');
   }
 
-  function isValidEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  function _validEmail(e) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
   }
 
-  // ── Public API ────────────────────────────────────────────────────
   return {
     init,
     openModal,
@@ -228,6 +301,7 @@ const Auth = (() => {
     handleRegister,
     handleLogin,
     logout,
-    getActiveUser
+    getActiveUser,
+    isForced: () => _forced
   };
 })();

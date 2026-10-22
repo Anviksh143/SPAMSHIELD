@@ -51,13 +51,13 @@
   </div>
 
   <!-- Sidebar Agent Profile Card -->
-  <div class="sidebar-agent-card" onclick="Auth.openModal()" title="Click to view Agent Profile / Switch">
-    <div class="agent-avatar" id="sidebarAvatar">A</div>
+  <div class="sidebar-agent-card" onclick="Auth.openModal()" title="Click to view Agent Profile / Login">
+    <div class="agent-avatar" id="sidebarAvatar">🔒</div>
     <div class="agent-info">
-      <div class="agent-name" id="sidebarUserName">Anviksh</div>
-      <div class="agent-role" id="sidebarUserRole">Cyber Security Analyst</div>
+      <div class="agent-name" id="sidebarUserName">Agent Locked</div>
+      <div class="agent-role" id="sidebarUserRole">Access Required</div>
     </div>
-    <span class="agent-status-badge">ONLINE</span>
+    <span class="agent-status-badge" id="sidebarAgentBadge" style="color:var(--neon-red);border-color:rgba(255,45,85,0.4);background:rgba(255,45,85,0.1);">LOCKED</span>
   </div>
 
   <nav class="sidebar-nav">
@@ -146,14 +146,19 @@
 
       <!-- User Profile Badge -->
       <div class="user-badge" id="userBadge" onclick="Auth.openModal()" title="Agent Profile & Access Clearance">
-        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-avatar" id="userAvatar">🔒</div>
         <div class="user-meta">
-          <span class="user-rank">AGENT ONLINE</span>
-          <span class="user-name" id="topbarUserName">Agent Anviksh</span>
+          <span class="user-rank" id="userRank">AUTH REQUIRED</span>
+          <span class="user-name" id="topbarUserName">Login / Sign Up</span>
         </div>
-        <svg class="user-chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
+        <button class="logout-btn" id="logoutBtn" onclick="event.stopPropagation(); Auth.logout();" title="Sign Out" style="display:none;">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Exit</span>
+        </button>
       </div>
     </div>
   </header>
