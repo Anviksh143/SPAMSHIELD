@@ -1010,10 +1010,10 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (!$('emailDetailPanel').classList.contains('hidden')) closeEmailDetail();
     if (!$('overlay').classList.contains('hidden')) closeSidebar();
-    // Close auth modal on Escape only if not forced
-    const authModal = $('authModal');
-    if (authModal && !authModal.classList.contains('hidden') && typeof Auth !== 'undefined' && !Auth.isForced()) {
-      Auth.closeModal();
+    // Close profile edit modal on Escape
+    const editModal = $('profileEditModal');
+    if (editModal && !editModal.classList.contains('hidden') && typeof Profile !== 'undefined') {
+      Profile.closeEditModal();
     }
   }
   if ((e.ctrlKey && e.key === 'f') || (e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName))) {
